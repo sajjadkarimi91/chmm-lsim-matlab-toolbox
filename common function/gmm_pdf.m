@@ -39,7 +39,13 @@ for zee =  1:C
                 X = current_observations(~temp_pattern,this_pat_loc)';
                 current_mu_temp = current_mu(~temp_pattern);
                 current_sig_temp = current_sig(~temp_pattern,~temp_pattern);
-                if ~isempty(~temp_pattern)
+                % at least one observed dimension; when every dimension of this
+                % channel is missing the channel contributes no evidence and the
+                % likelihood is 1, matching gmm_pdf_fast. The former test
+                % ~isempty(~temp_pattern) was always true (~temp_pattern is 1xd,
+                % never empty), so mvnpdf was called with a zero-column X and
+                % errored on fully missing timesteps.
+                if any(~temp_pattern)
                     PDFs = mvnpdf(X, current_mu_temp(:)', current_sig_temp);
                 else
                     PDFs = ones(size(X,1),1);

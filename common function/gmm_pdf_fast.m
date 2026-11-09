@@ -50,10 +50,17 @@ logSqrtDetSigma (ind_nan)=0;
 % y = exp(-0.5*quadform - logSqrtDetSigma - d*log(2*pi)/2);
 
 if(sum(diff(dimension_numbers_index)==1)==length(dimension_numbers_index)-1)
-    
+
     d = 1;
-    PDFs = P_all.*exp(-0.5*quadform - logSqrtDetSigma - d*log(2*pi)/2);
-    
+    % d*log(2*pi)/2 must be zeroed at missing entries too, same as
+    % logSqrtDetSigma above and as the else branch below does via D(ind_nan)=0 -
+    % otherwise a fully-missing d=1 channel-timestep contributes 1/sqrt(2*pi)
+    % instead of the intended 1.
+    D = d*log(2*pi)/2;
+    D = repmat(D , size(quadform,1) , size(quadform,2) , size(quadform,3) , size(quadform,4));
+    D(ind_nan) = 0;
+    PDFs = P_all.*exp(-0.5*quadform - logSqrtDetSigma - D);
+
 else
     
     D = log(2*pi)/2;
